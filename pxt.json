@@ -1,0 +1,28 @@
+{
+    "name": "ai-kamera",
+    "description": "",
+    "dependencies": {
+        "core": "*",
+        "radio": "*",
+        "microphone": "*",
+        "pxt-PlanetX-AI": "github:elecfreaks/pxt-planetx-ai#v0.3.4",
+        "neopixel": "github:microsoft/pxt-neopixel#v0.7.3",
+        "pxt-magicbit-pca9685": "github:TomasKazda/pxt-magicbit-pca9685#cc3452fed948afe4b2e56628fd6fde92110b3ef4"
+    },
+    "files": [
+        "main.blocks",
+        "main.ts",
+        "README.md"
+    ],
+    "testFiles": [
+        "test.ts"
+    ],
+    "targetVersions": {
+        "target": "4.0.18",
+        "targetId": "microbit"
+    },
+    "supportedTargets": [
+        "microbit"
+    ],
+    "preferredEditor": "tsprj"
+}
