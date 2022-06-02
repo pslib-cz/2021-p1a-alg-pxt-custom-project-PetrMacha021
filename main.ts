@@ -39,5 +39,5 @@ basic.forever(() => {
     } else {
         StopMotor();
     }
-    basic.pause(250);-
+    basic.pause(250);
 });
