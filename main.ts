@@ -2,13 +2,15 @@ const strip = neopixel.create(DigitalPin.P16, 4, NeoPixelMode.RGB);
 PlanetX_AILens.initModule()
 PlanetX_AILens.switchfunc(PlanetX_AILens.FuncList.Ball);
 
-PCAmotor.Servo(PCAmotor.Servos.S1, 110);
+PCAmotor.Servo(PCAmotor.Servos.S1, 95);
 strip.setBrightness(10);
 
 const States = {
     Search: 1,
     Found: 2,
     Grabbing: 3,
+    SearchSymbol: 4,
+    GoToSymbol: 5,
     // More posibilities
     Finished: 0,
 }
@@ -17,8 +19,6 @@ let currentState = States.Search;
 
 // Hunt mode
 strip.showColor(NeoPixelColors.Red);
-
-let speed: number = 75;
 
 /**
  * Jezdění s robotem
@@ -46,35 +46,44 @@ function StopMotor() {
 
 StopMotor();
 
+let ballInPrevious = false;
+
 basic.forever(() => {
     PlanetX_AILens.cameraImage();
-    console.log(`${PlanetX_AILens.ballData(PlanetX_AILens.Ballstatus.X)} ${PlanetX_AILens.ballData(PlanetX_AILens.Ballstatus.Y)} ${PlanetX_AILens.ballData(PlanetX_AILens.Ballstatus.Confidence)}`)
     switch (currentState) {
         case States.Search:
             strip.showColor(NeoPixelColors.Red);
-            // RunMotor(100,100,-100,-100);
-            if (PlanetX_AILens.checkBall()) {
-                currentState = States.Found;
+            RunMotor(-130,-130,130,130);
+            if (PlanetX_AILens.checkBall() && PlanetX_AILens.ballData(PlanetX_AILens.Ballstatus.X) > 40) {
+                if (ballInPrevious) {
+                    currentState = States.Found;
+                    ballInPrevious = false;
+                }
+                ballInPrevious = true;
+            } else {
+                ballInPrevious = false;
             }
             break;
         case States.Found:
             strip.showColor(NeoPixelColors.Green);
-            RunMotor(0, 0, 60, 60);
+            RunMotor(110,-110,-110,110);
+            if (PlanetX_AILens.ballData(PlanetX_AILens.Ballstatus.Y) <= 60 && ballInPrevious) currentState = States.Grabbing;
             if (PlanetX_AILens.ballData(PlanetX_AILens.Ballstatus.X) >= 0) {
                 PCAmotor.Servo(PCAmotor.Servos.S2, 115);
-                RunMotor(110, 110, 110, 110);
+                ballInPrevious = true;
+            } else {
+                ballInPrevious = false;
             }
-            if (PlanetX_AILens.ballData(PlanetX_AILens.Ballstatus.Y) <= 60) currentState = States.Grabbing;
             break;
         case States.Grabbing:
             strip.showColor(NeoPixelColors.Blue);
             PCAmotor.Servo(PCAmotor.Servos.S1, 70);
-            basic.pause(800);
             if (PlanetX_AILens.ballData(PlanetX_AILens.Ballstatus.Y) > 60 || PlanetX_AILens.ballData(PlanetX_AILens.Ballstatus.Y) === 0) {
-                RunMotor(90, 90, 90, 90);
+                RunMotor(90, -90, -90, 90);
             } else {
                 PCAmotor.Servo(PCAmotor.Servos.S2, 80);
-                currentState = States.Finished;
+                PlanetX_AILens.switchfunc(PlanetX_AILens.FuncList.Card);
+                currentState = States.SearchSymbol;
             }
             break;
         default:
