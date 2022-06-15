@@ -2,7 +2,7 @@ const strip = neopixel.create(DigitalPin.P16, 4, NeoPixelMode.RGB);
 PlanetX_AILens.initModule()
 PlanetX_AILens.switchfunc(PlanetX_AILens.FuncList.Ball);
 
-PCAmotor.Servo(PCAmotor.Servos.S1, 95);
+PCAmotor.Servo(PCAmotor.Servos.S1, 90);
 strip.setBrightness(10);
 
 const States = {
@@ -16,9 +16,6 @@ const States = {
 }
 
 let currentState = States.Search;
-
-// Hunt mode
-strip.showColor(NeoPixelColors.Red);
 
 /**
  * Jezdění s robotem
@@ -47,14 +44,16 @@ function StopMotor() {
 StopMotor();
 
 let ballInPrevious = false;
+let cardInPrevious = false;
 
-basic.forever(() => {
+while (true) {
     PlanetX_AILens.cameraImage();
     switch (currentState) {
         case States.Search:
             strip.showColor(NeoPixelColors.Red);
-            RunMotor(-130,-130,130,130);
-            if (PlanetX_AILens.checkBall() && PlanetX_AILens.ballData(PlanetX_AILens.Ballstatus.X) > 40) {
+            RunMotor(-110, -110, 110, 110);
+            ballInPrevious = true;
+            if (PlanetX_AILens.checkBall() && PlanetX_AILens.ballData(PlanetX_AILens.Ballstatus.X) < 170) {
                 if (ballInPrevious) {
                     currentState = States.Found;
                     ballInPrevious = false;
@@ -78,12 +77,39 @@ basic.forever(() => {
         case States.Grabbing:
             strip.showColor(NeoPixelColors.Blue);
             PCAmotor.Servo(PCAmotor.Servos.S1, 70);
-            if (PlanetX_AILens.ballData(PlanetX_AILens.Ballstatus.Y) > 60 || PlanetX_AILens.ballData(PlanetX_AILens.Ballstatus.Y) === 0) {
+            if (PlanetX_AILens.ballData(PlanetX_AILens.Ballstatus.Y) > 80 || PlanetX_AILens.ballData(PlanetX_AILens.Ballstatus.Y) === 0) {
                 RunMotor(90, -90, -90, 90);
             } else {
                 PCAmotor.Servo(PCAmotor.Servos.S2, 80);
                 PlanetX_AILens.switchfunc(PlanetX_AILens.FuncList.Card);
                 currentState = States.SearchSymbol;
+            }
+            break;
+        case States.SearchSymbol:
+            strip.showColor(NeoPixelColors.Purple);
+            PCAmotor.Servo(PCAmotor.Servos.S1, 90);
+            RunMotor(-120, -120, 120, 120);
+            if (PlanetX_AILens.CardData(PlanetX_AILens.Cardstatus.X) < 130 && PlanetX_AILens.trafficCard(PlanetX_AILens.trafficCards.stop)) {
+                console.log(PlanetX_AILens.CardData(PlanetX_AILens.Cardstatus.X));
+                if (cardInPrevious) {
+                    currentState = States.GoToSymbol;
+                }
+                cardInPrevious = true;
+            } else {
+                cardInPrevious = false;
+            }
+            break;
+        case States.GoToSymbol:
+            strip.showColor(NeoPixelColors.White);
+            StopMotor();
+            PCAmotor.Servo(PCAmotor.Servos.S1, 80);
+            if (PlanetX_AILens.CardData(PlanetX_AILens.Cardstatus.Y) > 60 || PlanetX_AILens.CardData(PlanetX_AILens.Cardstatus.Y) === 0) {
+                RunMotor(90, -90, -90, 90);
+            } else {
+                PCAmotor.Servo(PCAmotor.Servos.S2, 115);
+                RunMotor(-90, 90, 90, -90);
+                basic.pause(500);
+                currentState = States.Finished;
             }
             break;
         default:
@@ -92,4 +118,4 @@ basic.forever(() => {
             basic.showNumber(0);
     }
     basic.pause(100);
-});
+}
