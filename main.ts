@@ -52,7 +52,6 @@ while (true) {
         case States.Search:
             strip.showColor(NeoPixelColors.Red);
             RunMotor(-110, -110, 110, 110);
-            ballInPrevious = true;
             if (PlanetX_AILens.checkBall() && PlanetX_AILens.ballData(PlanetX_AILens.Ballstatus.X) < 170) {
                 if (ballInPrevious) {
                     currentState = States.Found;
